@@ -1,0 +1,68 @@
+"""
+Composition root: reads configuration from environment variables (Azure
+Function App "Application Settings" once deployed; local.settings.json's
+Values block for local dev) and constructs every adapter exactly once.
+
+function_app.py calls build_ingest_use_case() at MODULE level (cold
+start), not inside the trigger function body -- so the same
+IngestDocumentUseCase, with the same underlying HTTP clients/connections,
+is reused across every invocation handled by that worker process, instead
+of reconnecting to Blob/Search/SQL/Document Intelligence on every single
+document.
+"""
+
+import os
+
+from application.ingest_document import IngestDocumentUseCase
+from infrastructure.adjacent_text_image_captioner import AdjacentTextImageCaptioner
+from infrastructure.azure_ai_search_vector_store import AzureAISearchVectorStore
+from infrastructure.azure_blob_object_store import AzureBlobObjectStore
+from infrastructure.azure_openai_embedder import AzureOpenAIEmbedder
+from infrastructure.document_intelligence_extractor import DocumentIntelligenceTextExtractor
+from infrastructure.paragraph_role_chunker import ParagraphRoleChunker
+from infrastructure.sql_structured_store import SqlStructuredStore
+from infrastructure.table_cell_lab_value_parser import TableCellLabValueParser
+
+
+def _require_env(name: str) -> str:
+    value = os.environ.get(name)
+    if not value:
+        raise RuntimeError(f"Required application setting '{name}' is not set")
+    return value
+
+
+def build_ingest_use_case() -> IngestDocumentUseCase:
+    object_store = AzureBlobObjectStore(
+        connection_string=_require_env("BLOB_CONNECTION_STRING"),
+        container_name=_require_env("BLOB_CONTAINER_NAME"),
+    )
+    text_extractor = DocumentIntelligenceTextExtractor(
+        endpoint=_require_env("DOCUMENT_INTELLIGENCE_ENDPOINT"),
+        api_key=_require_env("DOCUMENT_INTELLIGENCE_KEY"),
+    )
+    chunker = ParagraphRoleChunker()
+    lab_value_parser = TableCellLabValueParser()
+    image_captioner = AdjacentTextImageCaptioner()
+    embedder = AzureOpenAIEmbedder(
+        endpoint=_require_env("AZURE_OPENAI_ENDPOINT"),
+        api_key=_require_env("AZURE_OPENAI_KEY"),
+        deployment_name=_require_env("AZURE_OPENAI_EMBEDDING_DEPLOYMENT"),
+        api_version=_require_env("AZURE_OPENAI_API_VERSION"),
+    )
+    vector_store = AzureAISearchVectorStore(
+        endpoint=_require_env("AZURE_SEARCH_ENDPOINT"),
+        api_key=_require_env("AZURE_SEARCH_KEY"),
+        index_name=_require_env("AZURE_SEARCH_INDEX_NAME"),
+    )
+    structured_store = SqlStructuredStore(db_url=_require_env("SQL_DB_URL"))
+
+    return IngestDocumentUseCase(
+        object_store=object_store,
+        text_extractor=text_extractor,
+        chunker=chunker,
+        lab_value_parser=lab_value_parser,
+        image_captioner=image_captioner,
+        embedder=embedder,
+        vector_store=vector_store,
+        structured_store=structured_store,
+    )
