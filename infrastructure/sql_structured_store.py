@@ -12,8 +12,8 @@ def _utcnow() -> datetime.datetime:
 
 class DocumentRow(Base):
     __tablename__ = "documents"
-    doc_id = Column(String, primary_key=True)
-    user_id = Column(String, nullable=False, index=True)
+    doc_id = Column(String(255), primary_key=True)
+    user_id = Column(String(255), nullable=False, index=True)
     filename = Column(String, nullable=False)
     blob_path = Column(String, nullable=False)
     status = Column(String, nullable=False, default="pending")
