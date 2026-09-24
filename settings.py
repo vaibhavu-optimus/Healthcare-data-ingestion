@@ -1,16 +1,3 @@
-"""
-Composition root: reads configuration from environment variables (Azure
-Function App "Application Settings" once deployed; local.settings.json's
-Values block for local dev) and constructs every adapter exactly once.
-
-function_app.py calls build_ingest_use_case() at MODULE level (cold
-start), not inside the trigger function body -- so the same
-IngestDocumentUseCase, with the same underlying HTTP clients/connections,
-is reused across every invocation handled by that worker process, instead
-of reconnecting to Blob/Search/SQL/Document Intelligence on every single
-document.
-"""
-
 import os
 
 from application.ingest_document import IngestDocumentUseCase

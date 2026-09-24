@@ -6,10 +6,8 @@ from domain.models import (
     ExtractedDocument,
     Figure,
     IngestionStatus,
-    LabValue,
     Paragraph,
-    StoredImage,
-    Table,
+    Table
 )
 
 
@@ -42,24 +40,6 @@ class ChunkingPort(Protocol):
     def chunk_text(self, paragraphs: list[Paragraph]) -> list[Chunk]: ...
 
     def chunk_tables(self, tables: list[Table]) -> list[Chunk]: ...
-
-
-class LabValueParserPort(Protocol):
-    """
-    Maps table cells directly to structured LabValue rows.
-    """
-
-    def parse(self, tables: list[Table]) -> list[LabValue]: ...
-
-
-class ImageCaptionPort(Protocol):
-    """
-    Produces a short, searchable caption for an extracted figure --
-    descriptive only ("frontal chest X-ray with an annotation marking the
-    right lower lobe"), never a diagnostic interpretation of what's shown.
-    A cheap adapter might reuse nearby paragraph text; a stronger one sends
-    the image to a vision-capable model at ingestion time.
-    """
 
     def caption(self, figure: Figure, nearby_paragraphs: list[Paragraph]) -> str: ...
 

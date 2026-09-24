@@ -44,8 +44,8 @@ class IngestDocumentUseCase:
             pdf_bytes = self._object_store.download(blob_path)
             extracted = self._text_extractor.extract(pdf_bytes)
             logger.info(
-                "doc=%s extracted %d paragraphs, %d tables, %d figures",
-                doc_id, len(extracted.paragraphs), len(extracted.tables), len(extracted.figures),
+                "doc=%s extracted %d paragraphs, %d tables",
+                doc_id, len(extracted.paragraphs), len(extracted.tables)
             )
 
             text_chunks = self._chunker.chunk_text(extracted.paragraphs)

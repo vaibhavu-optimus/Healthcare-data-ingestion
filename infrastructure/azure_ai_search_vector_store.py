@@ -34,7 +34,6 @@ def create_index_if_not_exists(endpoint: str, api_key: str, index_name: str, vec
         SimpleField(name="page_end", type=SearchFieldDataType.Int32, filterable=True),
         SimpleField(name="low_confidence", type=SearchFieldDataType.Boolean, filterable=True),
         SimpleField(name="source_type", type=SearchFieldDataType.String, filterable=True),
-        SimpleField(name="image_id", type=SearchFieldDataType.String, filterable=True),
         SearchField(
             name=_VECTOR_FIELD,
             type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
@@ -80,7 +79,6 @@ class AzureAISearchVectorStore:
                 "page_end": chunk.page_end,
                 "low_confidence": chunk.low_confidence,
                 "source_type": chunk.source_type,
-                "image_id": chunk.image_id or "",
                 _VECTOR_FIELD: vector,
             }
             for i, (chunk, vector) in enumerate(zip(chunks, vectors))
@@ -105,7 +103,7 @@ class AzureAISearchVectorStore:
             vector_queries=[vector_query],
             filter=filter_expr,
             top=top_k,
-            select=["content", "section", "page_start", "page_end", "low_confidence", "source_type", "image_id"],
+            select=["content", "section", "page_start", "page_end", "low_confidence", "source_type"],
         )
 
         return [
@@ -116,7 +114,6 @@ class AzureAISearchVectorStore:
                 page_end=r["page_end"],
                 low_confidence=r["low_confidence"],
                 source_type=r["source_type"],
-                image_id=r["image_id"] or None,
                 score=r["@search.score"],
             )
             for r in results
