@@ -43,12 +43,12 @@ class DocumentIntelligenceTextExtractor:
             output=[AnalyzeOutputOption.FIGURES]
         )
         result: AnalyzeResult = poller.result()
-        operation_id = poller.details["operation_id"]
+        # operation_id = poller.details["operation_id"]
 
         return ExtractedDocument(
             paragraphs=self._map_paragraphs(result),
             tables=self._map_tables(result),
-            figures=self._map_figures(result, operation_id),
+            # figures=self._map_figures(result, operation_id),
         )
 
     def _map_paragraphs(self, result: AnalyzeResult) -> list[Paragraph]:

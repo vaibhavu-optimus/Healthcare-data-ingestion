@@ -14,14 +14,12 @@ document.
 import os
 
 from application.ingest_document import IngestDocumentUseCase
-from infrastructure.adjacent_text_image_captioner import AdjacentTextImageCaptioner
 from infrastructure.azure_ai_search_vector_store import AzureAISearchVectorStore
 from infrastructure.azure_blob_object_store import AzureBlobObjectStore
 from infrastructure.azure_openai_embedder import AzureOpenAIEmbedder
 from infrastructure.document_intelligence_extractor import DocumentIntelligenceTextExtractor
 from infrastructure.paragraph_role_chunker import ParagraphRoleChunker
 from infrastructure.sql_structured_store import SqlStructuredStore
-from infrastructure.table_cell_lab_value_parser import TableCellLabValueParser
 
 
 def _require_env(name: str) -> str:
@@ -41,8 +39,6 @@ def build_ingest_use_case() -> IngestDocumentUseCase:
         api_key=_require_env("DOCUMENT_INTELLIGENCE_KEY"),
     )
     chunker = ParagraphRoleChunker()
-    lab_value_parser = TableCellLabValueParser()
-    image_captioner = AdjacentTextImageCaptioner()
     embedder = AzureOpenAIEmbedder(
         endpoint=_require_env("AZURE_OPENAI_ENDPOINT"),
         api_key=_require_env("AZURE_OPENAI_KEY"),
@@ -60,8 +56,6 @@ def build_ingest_use_case() -> IngestDocumentUseCase:
         object_store=object_store,
         text_extractor=text_extractor,
         chunker=chunker,
-        lab_value_parser=lab_value_parser,
-        image_captioner=image_captioner,
         embedder=embedder,
         vector_store=vector_store,
         structured_store=structured_store,

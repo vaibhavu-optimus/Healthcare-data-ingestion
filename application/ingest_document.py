@@ -3,8 +3,6 @@ from domain.models import Chunk, DocumentRecord, IngestionStatus, StoredImage
 from domain.ports import (
     ChunkingPort,
     EmbeddingPort,
-    ImageCaptionPort,
-    LabValueParserPort,
     ObjectStorePort,
     StructuredStorePort,
     TextExtractorPort,
@@ -19,8 +17,6 @@ class IngestDocumentUseCase:
         object_store: ObjectStorePort,
         text_extractor: TextExtractorPort,
         chunker: ChunkingPort,
-        lab_value_parser: LabValueParserPort,
-        image_captioner: ImageCaptionPort,
         embedder: EmbeddingPort,
         vector_store: VectorStorePort,
         structured_store: StructuredStorePort,
@@ -28,8 +24,6 @@ class IngestDocumentUseCase:
         self._object_store = object_store
         self._text_extractor = text_extractor
         self._chunker = chunker
-        self._lab_value_parser = lab_value_parser
-        self._image_captioner = image_captioner
         self._embedder = embedder
         self._vector_store = vector_store
         self._structured_store = structured_store
@@ -57,9 +51,8 @@ class IngestDocumentUseCase:
             text_chunks = self._chunker.chunk_text(extracted.paragraphs)
             table_chunks = self._chunker.chunk_tables(extracted.tables)
 
-            lab_values = self._lab_value_parser.parse(extracted.tables)
-            logger.info("doc=%s parsed %d lab values", doc_id, len(lab_values))
-
+            # We'll skip processing images in document right now since we require a vision model for that
+            """
             stored_images: list[StoredImage] = []
             figure_chunks: list[Chunk] = []
             for i, figure in enumerate(extracted.figures):
@@ -92,15 +85,17 @@ class IngestDocumentUseCase:
                 )
 
             logger.info("doc=%s extracted %d figures", doc_id, len(stored_images))
+            """
 
-            all_chunks = text_chunks + table_chunks + figure_chunks
+            # We are only chunking texts and tables data at the current
+            all_chunks = text_chunks + table_chunks
             vectors = self._embedder.embed([c.text for c in all_chunks])
             self._vector_store.upsert_chunks(doc_id, user_id, all_chunks, vectors)
 
             # store.replace_lab_values(doc_id, lab_values)
             # store.replace_images(doc_id, stored_images)
 
-            # store.update_status(doc_id, IngestionStatus.INDEXED)
+            store.update_status(doc_id, IngestionStatus.INDEXED)
             logger.info("doc=%s status=indexed", doc_id)
 
         except Exception as exc:
