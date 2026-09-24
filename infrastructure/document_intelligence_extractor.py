@@ -6,7 +6,7 @@ from azure.ai.documentintelligence.models import (
 )
 from azure.core.credentials import AzureKeyCredential
 
-from domain.models import ExtractedDocument, Figure, Paragraph, Table, TableCell
+from domain.models import ExtractedDocument, Paragraph, Table, TableCell
 
 _LOW_CONFIDENCE_THRESHOLD = 0.70
 
@@ -43,12 +43,10 @@ class DocumentIntelligenceTextExtractor:
             output=[AnalyzeOutputOption.FIGURES]
         )
         result: AnalyzeResult = poller.result()
-        # operation_id = poller.details["operation_id"]
 
         return ExtractedDocument(
             paragraphs=self._map_paragraphs(result),
             tables=self._map_tables(result),
-            # figures=self._map_figures(result, operation_id),
         )
 
     def _map_paragraphs(self, result: AnalyzeResult) -> list[Paragraph]:
@@ -85,23 +83,3 @@ class DocumentIntelligenceTextExtractor:
             )
 
         return tables
-
-    def _map_figures(self, result: AnalyzeResult, operation_id: str) -> list[Figure]:
-        """
-        DI detects figures as bounding regions but doesn't hand back image
-        bytes directly -- get_analyze_result_figure() is a separate call
-        that returns the already-cropped PNG for one figure ID.
-        """
-        figures = []
-        for fig in getattr(result, "figures", None) or []:
-            if not fig.id:
-                continue
-            page_number = fig.bounding_regions[0].page_number if fig.bounding_regions else 1
-            image_bytes = b"".join(
-                self._client.get_analyze_result_figure(
-                    model_id=result.model_id, result_id=operation_id, figure_id=fig.id
-                )
-            )
-            figures.append(Figure(page_number=page_number, image_bytes=image_bytes, content_type="image/png"))
-            
-        return figures

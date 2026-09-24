@@ -2,16 +2,22 @@ from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 from azure.storage.blob import BlobServiceClient, ContentSettings
 
 
+def create_container_if_not_exists(connection_string: str, container_name: str) -> None:
+    service_client = BlobServiceClient.from_connection_string(connection_string)
+    try:
+        service_client.create_container(container_name)
+    except ResourceExistsError:
+        pass
+
+
 class AzureBlobObjectStore:
-    """Implements ObjectStorePort."""
+    """
+    Implements ObjectStorePort.
+    """
 
     def __init__(self, connection_string: str, container_name: str):
         self._service_client = BlobServiceClient.from_connection_string(connection_string)
         self._container_name = container_name
-        try:
-            self._service_client.create_container(container_name)
-        except ResourceExistsError:
-            pass
 
     def download(self, blob_path: str) -> bytes:
         blob_client = self._service_client.get_blob_client(container=self._container_name, blob=blob_path)
