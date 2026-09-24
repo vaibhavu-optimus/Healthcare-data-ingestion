@@ -66,8 +66,8 @@ class RetrievedChunk:
     page_start: int
     page_end: int
     low_confidence: bool
-    source_type: str = "text"
     score: int
+    source_type: str = "text"
 
 @dataclass
 class DocumentRecord:
