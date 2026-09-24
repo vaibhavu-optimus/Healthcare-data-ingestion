@@ -1,6 +1,7 @@
 import os
 
 from application.ingest_document import IngestDocumentUseCase
+from domain.ports import ObjectStorePort, StructuredStorePort
 from infrastructure.azure_ai_search_vector_store import AzureAISearchVectorStore
 from infrastructure.azure_blob_object_store import AzureBlobObjectStore
 from infrastructure.azure_openai_embedder import AzureOpenAIEmbedder
@@ -47,3 +48,11 @@ def build_ingest_use_case() -> IngestDocumentUseCase:
         vector_store=vector_store,
         structured_store=structured_store,
     )
+
+def build_document_api_dependencies() -> tuple[ObjectStorePort, StructuredStorePort]:
+    object_store = AzureBlobObjectStore(
+        connection_string=_require_env("BLOB_CONNECTION_STRING"),
+        container_name=_require_env("BLOB_CONTAINER_NAME"),
+    )
+    structured_store = SqlStructuredStore(db_url=_require_env("SQL_DB_URL"))
+    return object_store, structured_store
