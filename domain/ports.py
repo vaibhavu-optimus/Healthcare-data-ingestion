@@ -4,7 +4,6 @@ from domain.models import (
     Chunk,
     DocumentRecord,
     ExtractedDocument,
-    Figure,
     IngestionStatus,
     Paragraph,
     Table
@@ -40,8 +39,6 @@ class ChunkingPort(Protocol):
     def chunk_text(self, paragraphs: list[Paragraph]) -> list[Chunk]: ...
 
     def chunk_tables(self, tables: list[Table]) -> list[Chunk]: ...
-
-    def caption(self, figure: Figure, nearby_paragraphs: list[Paragraph]) -> str: ...
 
 
 class EmbeddingPort(Protocol):

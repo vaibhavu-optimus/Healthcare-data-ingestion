@@ -1,5 +1,5 @@
 import logging
-from domain.models import Chunk, DocumentRecord, IngestionStatus, StoredImage
+from domain.models import Chunk, DocumentRecord, IngestionStatus
 from domain.ports import (
     ChunkingPort,
     EmbeddingPort,
