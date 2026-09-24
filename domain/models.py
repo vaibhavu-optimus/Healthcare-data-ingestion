@@ -44,18 +44,10 @@ class Table:
         return "\n".join(lines)
 
 @dataclass
-class Figure:
-    """An embedded image detected in the document."""
-    page_number: int
-    image_bytes: bytes
-    content_type: str = "image/png"
-
-@dataclass
 class ExtractedDocument:
     """The complete structured output of extracting one PDF."""
     paragraphs: list[Paragraph]
     tables: list[Table]
-    figures: list[Figure]
 
 @dataclass
 class Chunk:
@@ -66,26 +58,16 @@ class Chunk:
     page_end: int
     low_confidence: bool
     source_type: str = "text"
-    image_id: str | None = None
 
 @dataclass
-class LabValue:
-    test_name: str
-    value: float
-    unit: str | None
-    reference_low: float | None
-    reference_high: float | None
-    flag: str | None     # "H", "L", or None
-    page_number: int
-
-@dataclass
-class StoredImage:
-    """A persisted reference to a Figure after ingestion."""
-    image_id: str
-    doc_id: str
-    page_number: int
-    blob_path: str
-    caption: str | None = None
+class RetrievedChunk:
+    text: str
+    section: str
+    page_start: int
+    page_end: int
+    low_confidence: bool
+    source_type: str = "text"
+    score: int
 
 @dataclass
 class DocumentRecord:
