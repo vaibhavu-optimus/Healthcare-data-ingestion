@@ -3,26 +3,17 @@ import getpass
 
 from sqlalchemy.engine import URL
 
-def _escape_odbc_value(value: str) -> str:
-    """Wrap in {...} (doubling any literal }) only if it actually needs it."""
-    if any(c in value for c in ";{}="):
-        return "{" + value.replace("}", "}}") + "}"
-    return value
 
 def build_sql_db_url(server: str, database: str, username: str, password: str, port: int = 1433) -> str:
-    raw_odbc = (
-        "Driver={ODBC Driver 18 for SQL Server};"
-        f"Server=tcp:{server},{port};"
-        f"Database={database};"
-        f"Uid={_escape_odbc_value(username)};"
-        f"Pwd={_escape_odbc_value(password)};"
-        "Encrypt=yes;"
-        "TrustServerCertificate=no;"
-        "ConnectTimeout=30;"
-    )
-    return URL.create(drivername="mssql+pyodbc", query={"odbc_connect": raw_odbc}).render_as_string(
-        hide_password=False
-    )
+    return URL.create(
+        drivername="mssql+pymssql",
+        username=username,
+        password=password,
+        host=server,
+        port=port,
+        database=database,
+    ).render_as_string(hide_password=False)
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
